@@ -29,6 +29,14 @@
 
 		<video autoplay src="" height="360px" controls ></video>
 
+		<form>
+			<label>Upload subtitles</label>
+			<input id="upload_subs" name="subs" type="file" multiple />
+		</form>
+		<div id="upload_processing"></div>
+		<ul id="uploaded_subs"></ul>
+
+
 		<p>Samples Torrents (Magnet links):</p>
 
 		<ul id="demo_magnets">
@@ -40,6 +48,10 @@
 		<p>Magnet Contents: <a href="#" id="contents_toggle">[hide]</a></p>
 
 		<ul id="content"></ul>
+
+		<p>Subtitles: <a href="#" id="subtitles_toggle">[hide]</a></p>
+
+		<ul id="subtitles"></ul>
 
 		<p>Client Magnets:</p>
 
@@ -135,6 +147,15 @@
 			$(this).text($('#content').is(':visible') ? '[hide]' : '[show]');
 		})
 
+		// show\hide content
+		$('#subtitles_toggle').click(function (e) {
+			e.preventDefault();
+
+			$('#subtitles').toggle();
+
+			$(this).text($('#subtitles').is(':visible') ? '[hide]' : '[show]');
+		})
+
 		//
 		//	Load the content of the Magnet Hash
 		//
@@ -167,6 +188,19 @@
 			//
 			$('video').attr('src', api + '/stream/' + magnet + "/" + file_name);
 
+			$.get(api + "/subtitles/" + file_name, function(data) {
+				$.each(data.data, function(index, subtitle) {
+
+					subtitle.id;
+					subtitle.type;
+					subtitle.attributes;
+					subtitle.attributes.language;
+					subtitle.attributes.release; // name
+					subtitle.attributes.url; // URL
+
+					$("#subtitles").append('<li class="file url" data-name="' + subtitle.attributes.release + '"><span class="url">'+ subtitle.attributes.release + ' [' + subtitle.attributes.language + ']</span> <a href="' + subtitle.attributes.url + '" target="_blank">SRC</a></li>');
+				})
+			});
 		});
 
 		//
@@ -274,7 +308,7 @@
 			//
 			//	1.	Set a timeout that will be executed after n amount of time
 			//
-			setTimeout(function() {
+			//setTimeout(function() {
 
 				//
 				//	1.	Make a API request to get the contents of the Client
@@ -314,11 +348,13 @@
 					//	3.	Restart the timer so we keep on checking if there
 					//		are new Magnet Hashes
 					//
-					client_magnet_list();
 
+					setTimeout(function() {
+						client_magnet_list();
+					}, 1000)
 				});
 
-			}, 1000)
+			//}, 1000)
 		}
 
 		//
@@ -331,7 +367,7 @@
 			//
 			//	1.	Set a timeout that will be executed after n amount of time
 			//
-			setTimeout(function() {
+			//let checkStats = setTimeout(function() {
 
 				//
 				//	1.	Make a request to the API for fresh data.
@@ -356,15 +392,19 @@
 					//
 					$("#stats").append(li);
 
+
+					setTimeout(function() {
+						check_for_client_stats();
+					}, 2000)
 				});
 
 				//
 				//	2.	Restart the timer so we keep on checking the status of
 				//		the client.
 				//
-				check_for_client_stats();
+				//check_for_client_stats();
 
-			}, 1000);
+			//}, 1000);
 		}
 
 		//
@@ -376,7 +416,7 @@
 			//
 			//	1.	Set a timeout that will be executed after N amount of time
 			//
-			setTimeout(function() {
+			//setTimeout(function() {
 
 				//
 				//	1.	Make a request to the server for the data
@@ -404,12 +444,66 @@
 					//	2.	Restart the timer so we can update the error
 					//		message if there is anything new
 					//
-					check_for_client_errors();
+					//check_for_client_errors();
 
+					setTimeout(function() {
+						check_for_client_errors();
+					}, 1000);
 				});
 
-			}, 1000);
+			//}, 1000);
 		}
+
+		$('#upload_subs').change(function() {
+			// upload subs to the server
+
+			let subFileNames = [];
+			let subList = '';
+			for (let i = 0; i < this.files.length; ++i) {
+				subList += '<li>' + this.files.item(i).name + ' [' + (this.files.item(i).size/1024).toFixed(2) + ' KB]</li>'
+
+				subFileNames.push(this.files.item(i).name);
+			}
+
+			$('#uploaded_subs').html(subList)
+
+
+			$.ajax({
+				url: api + '/upload',
+				type: "POST",
+				data:  new FormData($(this).parent()[0]),
+				contentType: false,
+				cache: false,
+				processData:false,
+				beforeSend : function()
+				{
+					$("#upload_processing").text('Uploading...');
+				},
+				success: function(data)
+				{
+					$("#upload_processing").text('Successfully uploaded');
+
+					for (let i = 0; i < subFileNames.length; i++) {
+						let vttSubFileName = subFileNames[i].replace('.srt', '.vtt');
+
+						let track = '<track\n' +
+								'label="English' + i + '"' +
+								'kind="subtitles"' +
+								'srcLang="en' + i + '"' +
+								'src="subtitles/' + vttSubFileName + '"' +
+								'default />'
+
+						$('video').append(track);
+
+						$('video')[0].textTracks[i].mode = 'showing';
+					}
+				},
+				error: function(e)
+				{
+					$("#upload_processing").html('Error!')
+				}
+			});
+		})
 
 	});
 

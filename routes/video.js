@@ -3,6 +3,7 @@ import path from 'path';
 import express from 'express';
 import WebTorrent from 'webtorrent';
 import request from 'request';
+import fileUpload from 'express-fileupload';
 //import OS from 'opensubtitles.com';
 
 let router = express.Router();
@@ -442,6 +443,43 @@ router.get('/subtitles/:fileName', function(req, res, next) {
         }
     }).pipe(res)
 
+});
+
+
+router.post('/upload', function(req, res, next) {
+    try {
+        if(!req.files) {
+            res.send({
+                status: false,
+                message: 'No file uploaded'
+            });
+        } else {
+            let data = [];
+
+            //loop all files
+            for (let i = 0; i < req.files.subs.length; i++) {
+
+                //move photo to uploads directory
+                req.files.subs[i].mv('subtitles/' + req.files.subs[i].name).then(r => {
+                    //push file details
+                    data.push({
+                        name: req.files.subs[i].name,
+                        mimetype: req.files.subs[i].mimetype,
+                        size: req.files.subs[i].size
+                    });
+                });
+            }
+            //return response
+            res.send({
+                status: true,
+                message: 'Files are uploaded',
+                data: data
+            });
+        }
+    } catch (err) {
+        console.log(err)
+        res.status(500).send(err);
+    }
 });
 
 export default router;

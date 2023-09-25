@@ -3,6 +3,7 @@ import cors from 'cors';
 import logger from 'morgan';
 import express from 'express';
 import bodyParser from 'body-parser';
+import fileUpload from 'express-fileupload';
 
 let app = express();
 
@@ -29,6 +30,11 @@ app.use(cors());
 //	Check for HTTPS
 //
 app.use(force_https);
+
+// enable files upload
+app.use(fileUpload({
+    createParentPath: true
+}));
 
 //
 //	Expose the public folder to the world

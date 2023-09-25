@@ -37,7 +37,7 @@
 
 		<p>Magnet Hash <input type="text" name="magnet" placeholder="Enter torrent URL."> <button id="load">Load</button></p>
 
-		<p>Magnet Contents:</p>
+		<p>Magnet Contents: <a href="#" id="contents_toggle">[hide]</a></p>
 
 		<ul id="content"></ul>
 
@@ -125,6 +125,15 @@
 			load();
 
 		});
+
+		// show\hide content
+		$('#contents_toggle').click(function (e) {
+			e.preventDefault();
+
+			$('#content').toggle();
+
+			$(this).text($('#content').is(':visible') ? '[hide]' : '[show]');
+		})
 
 		//
 		//	Load the content of the Magnet Hash

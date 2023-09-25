@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import express from 'express';
 import WebTorrent from 'webtorrent';
+import request from 'request';
+//import OS from 'opensubtitles.com';
 
 let router = express.Router();
 
@@ -337,6 +339,108 @@ router.get('/delete/:magnet', function(req, res, next) {
         res.end();
 
     });
+
+});
+
+router.get('/subtitles/:fileName', function(req, res, next) {
+
+    const apiKey = 'JSnxQah80H1ntf0egIJcSlCm6uP43IR1'
+    const userAgent = 'Double sub video viewer v0.1'
+    const formats = ['crt', 'webvtt']
+
+
+
+
+    let filename = req.params.fileName
+
+   /* const os = new OS({apikey: apiKey})
+
+    os.login({
+        username: 'madcoder',
+        password: 'j8zE8@ZDhLf82&i'
+    }).then((response) => {
+        /!* response {
+          token: '<YOUR BEARER TOKEN>',
+          user: { <USER PROFILE DETAIL > },
+          status: 200
+        }*!/
+
+        console.log(response)
+
+        os.subtitles({
+            query: filename,
+        }).then((response) => {
+
+            console.log(response)
+
+            /!* response {
+              total_pages: 1,
+              total_count: 13,
+              page: 1,
+              data: <SUBTITLES LIST>
+            } *!/
+        }).catch(console.error)
+
+    }).catch(console.error)
+*/
+
+/*
+    request({
+        headers: {
+            'Content-Type': 'application/json',
+            'Api-Key': apiKey,
+            'User-Agent': userAgent
+        },
+        uri: 'https://api.opensubtitles.com/api/v1/infos/formats',
+        qs: {
+            api_key: apiKey,
+            query: filename
+        }
+    }).pipe(res)*/
+
+    // get a list of  languages
+   /* request({
+        headers: {
+            'Content-Type': 'application/json',
+            'Api-Key': apiKey,
+            'User-Agent': userAgent
+        },
+        uri: 'https://api.opensubtitles.com/api/v1/infos/languages',
+        qs: {
+            api_key: apiKey,
+            query: filename
+        }
+    }).pipe(res)*/
+
+    // parse S04E05;
+
+    const regex = /S([0-9]{2})E([0-9]{2})/
+    const result = filename.match(regex);
+
+    const season = Number.parseInt(result[1]);
+    const episode = Number.parseInt(result[2]);
+
+    // @TODO: find a way to find IMDB ID of a movie
+    let imdbID = 749451
+
+    // find subtitles
+    request({
+        headers: {
+            'Content-Type': 'application/json',
+            'Api-Key': apiKey,
+            'User-Agent': userAgent
+        },
+        uri: 'https://api.opensubtitles.com/api/v1/subtitles',
+        qs: {
+            api_key: apiKey,
+            query: filename.replace('.mp4', ''),
+            //imdb_id: imdbID,
+            languages: 'en,ru,uk',
+            episode_number: episode,
+            season_number: season,
+            type: 'episode'
+        }
+    }).pipe(res)
 
 });
 

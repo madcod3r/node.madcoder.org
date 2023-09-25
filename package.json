@@ -13,8 +13,11 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "hjs": "^0.0.6",
     "morgan": "^1.10.0",
     "opensubtitles-api": "^5.1.2",
+    "opensubtitles.com": "^1.0.0",
+    "request": "^2.88.2",
     "srt-parser-2": "^1.2.3",
     "srt-to-vtt": "^1.1.3",
     "srt2vtt": "^1.3.1",

@@ -152,6 +152,19 @@ router.get('/stream/:magnet/:file_name', async function (req, res, next) {
         return file.name === req.params.file_name
     })
 
+    if (!file) {
+        //
+        // 	1.	Create the error
+        //
+        const err = new Error("File not found in the torrent");
+        err.status = 416;
+
+        //
+        //	->	Send the error and stop the request.
+        //
+        return next(err);
+    }
+
     /*for (let i = 0; i < torrent.files.length; i++) {
         if (torrent.files[i].name == req.params.file_name) {
             file = torrent.files[i];

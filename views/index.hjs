@@ -59,8 +59,32 @@
 				background-color: black;
 				color: white;
 			}
+			video::cue(:lang(en)) {
+				color: yellow;
+			}
 
 			::cue(:lang(en)) {
+				color: yellow;
+			}
+			::cue([lang="en"]) {
+				color: yellow;
+			}
+			::cue([srcLang="en"]) {
+				color: yellow;
+			}
+			::cue(:default) {
+				color: yellow;
+			}
+			::cue(::first-line) {
+				color: yellow;
+			}
+			::cue::first-line {
+				color: yellow;
+			}
+			::cue:active {
+				color: yellow;
+			}
+			::cue(:active) {
 				color: yellow;
 			}
 		</style>
@@ -69,10 +93,7 @@
 
 	<body>
 
-		<video autoplay src="" height="360px" controls >
-			<track label="English0" kind="subtitles" srcLang="en" src="subtitles/The Wire - 1x02 - The Detail.en.vtt" default />
-			<track label="English1" kind="subtitles" srcLang="en1" src="subtitles/The_Wire_102_The_Detail.vtt" default />
-		</video>
+		<video autoplay src="" height="360px" controls></video>
 
 		<form>
 			<label>Upload subtitles</label>
@@ -121,6 +142,8 @@
 	</body>
 
 	<script>
+
+		let currentFileName;
 
 	$(function() {
 
@@ -228,7 +251,7 @@
 			//
 			const filename = $(this).attr("data-name")
 
-			playVideo(magnet, filename, 0)
+			playVideo(magnet, filename)
 		});
 
 		//
@@ -262,16 +285,55 @@
 		//	                    | |
 		//	                    |_|
 
-		function playVideo(magnet, filename, currentTime) {
+		function playVideo(magnet, filename) {
 			localStorage.setItem('magnet', magnet)
 			localStorage.setItem('filename', filename)
+
+			currentFileName = filename;
+
+
+			let userSubs = JSON.parse(localStorage.getItem('subs'));
+			if (userSubs && typeof userSubs[filename] !== 'undefined' && userSubs[filename].length) {
+				const subs = userSubs[filename]
+
+				console.log('loading subs:', subs);
+
+				// remove prev tracks
+				$('video track').remove()
+
+				for (let i = 0; i < subs.length; i++) {
+
+					let track = '<track ' +
+							'label="English' + i + '" ' +
+							'kind="subtitles" ' +
+							'srcLang="en' + i + '" ' +
+							'src="subtitles/' + subs[i] + '" ' +
+							'default />'
+
+					$('video').append(track);
+
+					$('video')[0].textTracks[i].mode = 'showing';
+				}
+
+				/*for (let i = 0; i < subs.length; i++) {
+					let track = $('video')[0].addTextTrack('subtitles')
+					track.src = 'subtitles/' + subs[i];
+					track.mode = 'showing';
+
+				}*/
+			}
 
 			//
 			//	3.	Set the proper SRC of the video player
 			//
 			$('video').attr('src', api + '/stream/' + magnet + "/" + filename)
 
-			$('video')[0].currentTime = currentTime
+			//$('video')[0].currentTime = currentTime
+
+			let startTimes = JSON.parse(localStorage.getItem('startTimes'));
+			if (startTimes && typeof startTimes[filename] !== 'undefined') {
+				$('video')[0].currentTime = startTimes[filename];
+			}
 
 
 			for (let i = 0; i < $('video')[0].textTracks.length; i++) {
@@ -639,23 +701,30 @@
 		if (magnet && lastVideoFile) {
 			console.log('The video filename loaded from localstorage: ', lastVideoFile)
 
-			const currentTime = localStorage.getItem('currentTime')
-
-			playVideo(magnet, lastVideoFile, currentTime ?? 0)
+			playVideo(magnet, lastVideoFile)
 		}
 
 		// Saves current video time to localstorage
 		setInterval(function() {
-			const delay = 10;
-			let currentTime = $('video')[0].currentTime;
-			if (currentTime - delay > 0) {
-				currentTime -= delay
-			}
+			if (currentFileName) {
+				let startTimes = JSON.parse(localStorage.getItem('startTimes')) || {}
 
-			localStorage.setItem('currentTime', currentTime)
+				startTimes[currentFileName] = $('video')[0].currentTime
+
+				localStorage.setItem('startTimes', JSON.stringify(startTimes))
+			}
 		}, 200);
 
+		// save last time of selected video
+		let userSubs = JSON.parse(localStorage.getItem('subs'));
+		if (!userSubs) {
+			let userSubs = {
+				'The Wire S01E01.mp4': ['en.vtt', 'ru.vtt'],
+				'The Wire S01E02.mp4': ['The Wire - 1x02 - The Detail.en.vtt', 'The_Wire_102_The_Detail.vtt']
+			};
 
+			localStorage.setItem('subs', JSON.stringify(userSubs));
+		}
 	});
 
 	//

@@ -13,12 +13,46 @@
 		<style type="text/css">
 
 			body {
+				background: black;
 				font-family: monospace;
+				color: #958826;
+				text-align: center;
+			}
+
+			a {
+				color: #ff8400;
+			}
+
+			a:hover {
+				color: #ffa700;
+			}
+
+			a.toggle {
+				text-decoration: none;
+			}
+
+			a.toggle:hover {
+				text-decoration: underline;
+				text-decoration-style: dashed;
+			}
+
+			ul {
+				display: inline-block;
+				vertical-align: top;
+				list-style-type: decimal;
+				text-align: left;
+			}
+
+			ul li {
 			}
 
 			.url:hover {
     			text-decoration: underline;
     			cursor: pointer;
+			}
+
+			video {
+				margin: 100px 0;
 			}
 
 			::cue {
@@ -56,11 +90,11 @@
 
 		<p>Magnet Hash <input type="text" name="magnet" placeholder="Enter torrent URL."> <button id="load">Load</button></p>
 
-		<p>Magnet Contents: <a href="#" id="contents_toggle">[hide]</a></p>
+		<p>Torrent Contents: [ <a href="#" id="contents_toggle" class="toggle">hide</a> ]</p>
 
-		<ul id="content"></ul>
+		<div id="content"></div>
 
-		<p>Subtitles: <a href="#" id="subtitles_toggle">[hide]</a></p>
+		<p>Subtitles: [ <a href="#" id="subtitles_toggle" class="toggle">hide</a> ]</p>
 
 		<ul id="subtitles"></ul>
 
@@ -133,7 +167,7 @@
 			//	2.	Remove the place holder of the input tag. If we don't do
 			//		this the interface will look like poop.
 			//
-			$('input[name="magnet"]').removeAttr('placeholder');
+			//$('input[name="magnet"]').removeAttr('placeholder');
 
 			//
 			//	3.	Set the Magnet Hash in the input tag.
@@ -155,7 +189,7 @@
 
 			$('#content').toggle();
 
-			$(this).text($('#content').is(':visible') ? '[hide]' : '[show]');
+			$(this).text($('#content').is(':visible') ? 'hide' : 'show');
 		})
 
 		// show\hide content
@@ -164,7 +198,7 @@
 
 			$('#subtitles').toggle();
 
-			$(this).text($('#subtitles').is(':visible') ? '[hide]' : '[show]');
+			$(this).text($('#subtitles').is(':visible') ? 'hide' : 'show');
 		})
 
 		//
@@ -187,36 +221,14 @@
 			//
 			//	1.	Get the Magnet Hash
 			//
-			var magnet = $('input[name="magnet"]').val();
+			const magnet = $('input[name="magnet"]').val()
 
 			//
 			//	2.	Get the file name that was clicked
 			//
-			var file_name = $(this).attr("data-name");
+			const filename = $(this).attr("data-name")
 
-			//
-			//	3.	Set the proper SRC of the video player
-			//
-			$('video').attr('src', api + '/stream/' + magnet + "/" + file_name);
-
-
-			for (let i = 0; i < $('video')[0].textTracks.length; i++) {
-				$('video')[0].textTracks[i].mode = 'showing';
-			}
-
-			$.get(api + "/subtitles/" + file_name, function(data) {
-				$.each(data.data, function(index, subtitle) {
-
-					subtitle.id;
-					subtitle.type;
-					subtitle.attributes;
-					subtitle.attributes.language;
-					subtitle.attributes.release; // name
-					subtitle.attributes.url; // URL
-
-					$("#subtitles").append('<li class="file url" data-name="' + subtitle.attributes.release + '"><span class="url">'+ subtitle.attributes.release + ' [' + subtitle.attributes.language + ']</span> <a href="' + subtitle.attributes.url + '" target="_blank">SRC</a></li>');
-				})
-			});
+			playVideo(magnet, filename, 0)
 		});
 
 		//
@@ -250,6 +262,37 @@
 		//	                    | |
 		//	                    |_|
 
+		function playVideo(magnet, filename, currentTime) {
+			localStorage.setItem('magnet', magnet)
+			localStorage.setItem('filename', filename)
+
+			//
+			//	3.	Set the proper SRC of the video player
+			//
+			$('video').attr('src', api + '/stream/' + magnet + "/" + filename)
+
+			$('video')[0].currentTime = currentTime
+
+
+			for (let i = 0; i < $('video')[0].textTracks.length; i++) {
+				$('video')[0].textTracks[i].mode = 'showing';
+			}
+
+			$.get(api + "/subtitles/" + filename, function (data) {
+				$.each(data.data, function (index, subtitle) {
+
+					subtitle.id;
+					subtitle.type;
+					subtitle.attributes;
+					subtitle.attributes.language;
+					subtitle.attributes.release; // name
+					subtitle.attributes.url; // URL
+
+					$("#subtitles").append('<li class="file url" data-name="' + subtitle.attributes.release + '"><span class="url">' + subtitle.attributes.release + ' [' + subtitle.attributes.language + ']</span> <a href="' + subtitle.attributes.url + '" target="_blank">SRC</a></li>');
+				})
+			});
+		}
+
 		//
 		//	Load the content of a Magnet so we can see what files are inside
 		//	a Magnet.
@@ -269,12 +312,12 @@
 			//
 			//	3.	Let the user know what to expect
 			//
-			$("#content").append('<li>Loading...</li>');
+			$("#content").append('<b>Loading...</b>');
 
 			//
 			//	4.	Get Magnet hash from the input field
 			//
-			var magnet = $('input[name="magnet"]').val();
+			const magnet = $('input[name="magnet"]').val();
 
 			//
 			//	5.	React only if there is a Magnet Has
@@ -283,6 +326,9 @@
 			{
 				return console.error("No Magnet Hash");
 			}
+
+			// save last loaded magnet to localstorage
+			localStorage.setItem('magnet', magnet);
 
 			//
 			//	6.	Make a request to the API to load the contents of a Magnet
@@ -295,14 +341,67 @@
 				//
 				$("#content").empty();
 
+				// find out if the files are series
+				let isSerial = false
+				if (data[0].name.includes('S01E01')) {
+					isSerial = true
+				}
+
+				if (isSerial) {
+
+					/*let serialFiles = [
+							['S01E01', 'S01E02'],
+							['S02E01', 'S02E02'],
+							['S03E01', 'S03E02'],
+					];*/
+
+					let serialFiles = [];
+
+					$.each(data, function(index, file) {
+
+
+						const regex = /S([0-9]{2})E([0-9]{2})/
+						const result = file.name.match(regex);
+
+						const season = Number.parseInt(result[1]);
+						const episode = Number.parseInt(result[2]);
+
+						if (typeof serialFiles[season] === 'undefined') {
+							serialFiles[season] = [];
+						}
+
+						serialFiles[season][episode] = file;
+					});
+
+
+					for (let s = 1; s < serialFiles.length; s++) {
+						$('#content').append('<ul class="season' + s + '">');
+
+						for (let e = 1; e < serialFiles[s].length; e++) {
+
+							let file = serialFiles[s][e]
+
+							$('#content ul.season' + s).append('<li class="file url" data-name="' + file.name + '"><span class="url">'+ file.name + '</span> (' + format_bytes(file.length, 0) + ') <a href="' + api + '/stream/' + magnet + "/" + file.name + '">SRC</a></li>');
+
+						}
+					}
+
+				} else {
+					$('#content').append('<ul>')
+
+					$.each(data, function(index, obj) {
+						$('#content ul').append('<li class="file url" data-name="' + obj.name + '"><span class="url">'+ obj.name + '</span> (' + format_bytes(obj.length, 0) + ') <a href="' + api + '/stream/' + magnet + "/" + obj.name + '">SRC</a></li>');
+					})
+				}
+
 				//
 				//	2.	Loop over the server response and list all the file
 				//		inside the Magnet Hash.
 				//
-				$.each(data, function(index, obj) {
+				/*$.each(data, function(index, obj) {
 
 					$("#content").append('<li class="file url" data-name="' + obj.name + '"><span class="url">'+ obj.name + '</span> (' + format_bytes(obj.length, 0) + ') <a href="' + api + '/stream/' + magnet + "/" + obj.name + '">SRC</a></li>');
-				})
+				})*/
 
 				//
 				//	3.	Re-enable the loading button so the user can maybe past
@@ -523,6 +622,39 @@
 				}
 			});
 		})
+
+
+		// Loads torrent by magnet stored in localstorage on page loads
+		const magnet = localStorage.getItem('magnet')
+		if (magnet) {
+			console.log('The magnet loaded from localstorage: ', magnet)
+
+			$('input[name="magnet"]').val(localStorage.getItem('magnet'))
+
+			load()
+		}
+
+		// Loads last used video file from localstorage
+		const lastVideoFile = localStorage.getItem('filename')
+		if (magnet && lastVideoFile) {
+			console.log('The video filename loaded from localstorage: ', lastVideoFile)
+
+			const currentTime = localStorage.getItem('currentTime')
+
+			playVideo(magnet, lastVideoFile, currentTime ?? 0)
+		}
+
+		// Saves current video time to localstorage
+		setInterval(function() {
+			const delay = 10;
+			let currentTime = $('video')[0].currentTime;
+			if (currentTime - delay > 0) {
+				currentTime -= delay
+			}
+
+			localStorage.setItem('currentTime', currentTime)
+		}, 200);
+
 
 	});
 

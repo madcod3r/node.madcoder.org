@@ -1,6 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import subsrt from 'subsrt';
+import LanguageDetect from 'languagedetect';
 
 let router = express.Router();
 
@@ -18,21 +19,10 @@ router.get('/', function(req, res, next) {
 router.get('/subtitles/:subFileName', function(req, res, next) {
 
     let subFileName = req.params.subFileName
-    //let subPath = 'subtitles/' + subFileName.replace('.vtt', '.srt')
     let subPath = 'subtitles/' + subFileName
-
-   /* res.setHeader('Content-Type', 'text/vtt; charset=utf-8');
-    let data = fs.readFileSync(subPath, 'utf8');
-    res.send("WEBVTT\n\n" + data.toString())*/
-
-
-
-
-    const lang = subFileName.replace('.vtt', '');
 
     try {
         if (fs.existsSync(subPath)) {
-            //res.setHeader('Content-Type', 'text/vtt; charset=utf-8');
             res.send(fs.readFileSync(subPath, 'utf8'))
         } else {
             const srt = fs.readFileSync(subPath.replace('.vtt', '.srt'), 'utf8');
@@ -56,6 +46,11 @@ router.get('/subtitles/:subFileName', function(req, res, next) {
                     return (hh < 10 ? "0" : "") + hh + ":" + (mm < 10 ? "0" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss + "." + (ff < 100 ? "0" : "") + (ff < 10 ? "0" : "") + ff;
                 }
             };
+
+            const lngDetector = new LanguageDetect()
+
+            const languagesDetected = lngDetector.detect(srt.substring(0, 1000), 1)
+            const lang = languagesDetected[0][0].substring(0, 2)
 
 
             //Build the WebVTT content
@@ -147,7 +142,6 @@ router.get('/subtitles/:subFileName', function(req, res, next) {
             //Write content to .vtt file
             fs.writeFileSync(subPath, content)
 
-            //res.setHeader('Content-Type', 'text/vtt; charset=utf-8');
             res.send(fs.readFileSync(subPath, 'utf8'))
         }
     } catch(err) {

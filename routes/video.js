@@ -1,17 +1,13 @@
-import fs from 'fs';
-import path from 'path';
 import express from 'express';
 import WebTorrent from 'webtorrent';
 import request from 'request';
-import fileUpload from 'express-fileupload';
-//import OS from 'opensubtitles.com';
 
-let router = express.Router();
+const router = express.Router();
 
 //
 //	1.	When the server starts create a WebTorrent client
 //
-let client = new WebTorrent();
+const client = new WebTorrent();
 
 //
 //	2.	The object that holds the client stats to be displayed in the front end
@@ -70,7 +66,7 @@ router.get('/add/:magnet', function(req, res) {
     //
     //	1.	Extract the magnet Hash and save it in a meaningful variable.
     //
-    let magnet = req.params.magnet;
+    const magnet = req.params.magnet;
 
     //
     //	2.	Add the magnet Hash to the client
@@ -130,33 +126,37 @@ router.get('/stream/:magnet/:file_name', async function (req, res, next) {
     //
     //	1.	Extract the magnet Hash and save it in a meaningful variable.
     //
-    let magnet = req.params.magnet;
+    const magnet = req.params.magnet;
 
     //
     //	2.	Returns the torrent with the given torrentId. Convenience method.
     //		Easier than searching through the client.torrents array. Returns
     //		null if no matching torrent found.
     //
-    var tor = await client.get(magnet);
+    const torrent = await client.get(magnet);
 
-    if (tor === null) {
+    if (torrent === null) {
         return next('No files!');
     }
 
     //
     //	3.	Variable that will store the user selected file
     //
-    let file = {};
+    //let file = {};
 
     //
     //	4.	Loop over all the files contained inside a Magnet Hash and find the one
     //		the user selected.
     //
-    for (let i = 0; i < tor.files.length; i++) {
-        if (tor.files[i].name == req.params.file_name) {
-            file = tor.files[i];
+    const file = torrent.files.find(function (file) {
+        return file.name === req.params.file_name
+    })
+
+    /*for (let i = 0; i < torrent.files.length; i++) {
+        if (torrent.files[i].name == req.params.file_name) {
+            file = torrent.files[i];
         }
-    }
+    }*/
 
     //
     //	5.	Save the range the browser is asking for in a clear and
@@ -167,7 +167,7 @@ router.get('/stream/:magnet/:file_name', async function (req, res, next) {
     //
     //		EXAMPLE: bytes=65534-33357823
     //
-    let range = req.headers.range;
+    const range = req.headers.range;
 
     console.log(range);
 
@@ -178,7 +178,7 @@ router.get('/stream/:magnet/:file_name', async function (req, res, next) {
         //
         // 	1.	Create the error
         //
-        let err = new Error("Wrong range");
+        const err = new Error("Wrong range");
         err.status = 416;
 
         //
@@ -190,17 +190,17 @@ router.get('/stream/:magnet/:file_name', async function (req, res, next) {
     //
     //	7.	Convert the string range in to an array for easy use.
     //
-    let positions = range.replace(/bytes=/, "").split("-");
+    const positions = range.replace(/bytes=/, "").split("-");
 
     //
     //	8.	Convert the start value in to an integer
     //
-    let start = parseInt(positions[0], 10);
+    const start = parseInt(positions[0], 10);
 
     //
     //	9.	Save the total file size in to a clear variable
     //
-    let file_size = file.length;
+    const file_size = file.length;
 
     //
     //	10.	IF 		the end parameter is present we convert it in to an
@@ -209,22 +209,22 @@ router.get('/stream/:magnet/:file_name', async function (req, res, next) {
     //		ELSE 	We use the file_size variable as the last part to be
     //				sent.
     //
-    let end = positions[1] ? parseInt(positions[1], 10) : file_size - 1;
+    const end = positions[1] ? parseInt(positions[1], 10) : file_size - 1;
 
     //
     //	11.	Calculate the amount of bits will be sent back to the
     //		browser.
     //
-    let chunksize = (end - start) + 1;
+    const chunkSize = (end - start) + 1;
 
     //
     //	12.	Create the header for the video tag so it knows what is
     //		receiving.
     //
-    let head = {
+    const head = {
         "Content-Range": "bytes " + start + "-" + end + "/" + file_size,
         "Accept-Ranges": "bytes",
-        "Content-Length": chunksize,
+        "Content-Length": chunkSize,
         "Content-Type": "video/mp4"
     }
 
@@ -237,7 +237,7 @@ router.get('/stream/:magnet/:file_name', async function (req, res, next) {
     //	14.	Create the createReadStream option object so createReadStream
     //		knows how much data it should be read from the file.
     //
-    let stream_position = {
+    const stream_position = {
         start: start,
         end: end
     }
@@ -245,7 +245,7 @@ router.get('/stream/:magnet/:file_name', async function (req, res, next) {
     //
     //	15.	Create a stream chunk based on what the browser asked us for
     //
-    let stream = file.createReadStream(stream_position)
+    const stream = file.createReadStream(stream_position)
 
     //
     //	16.	Pipe the video chunk to the request back to the request
@@ -275,7 +275,7 @@ router.get('/list', function(req, res, next) {
     //
     //	1.	Loop over all the Magnet Hashes
     //
-    let torrent = client.torrents.reduce(function(array, data) {
+    const torrent = client.torrents.reduce(function(array, data) {
 
         array.push({
             hash: data.infoHash
@@ -329,16 +329,14 @@ router.get('/delete/:magnet', function(req, res, next) {
     //
     //	1.	Extract the magnet Hash and save it in a meaningful variable.
     //
-    let magnet = req.params.magnet;
+    const magnet = req.params.magnet;
 
     //
     //	2.	Remove the Magnet Hash from the client.
     //
-    client.remove(magnet, function() {
-
+    client.remove(magnet).then(r => {
         res.status(200);
         res.end();
-
     });
 
 });

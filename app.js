@@ -63,9 +63,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 //////////////////////////////////////////////////////////////////////////////
 
-//var router = require('./routes/index');
-//var routesVideo = require('./routes/video');
-
 import indexRouter from './routes/index.js'
 import videoRouter from './routes/video.js';
 

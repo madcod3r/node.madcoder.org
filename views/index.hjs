@@ -60,7 +60,7 @@
 				color: white;
 			}
 
-			::cue(:lang(ru)) {
+			::cue(:lang(en)) {
 				color: yellow;
 			}
 		</style>
@@ -70,8 +70,8 @@
 	<body>
 
 		<video autoplay src="" height="360px" controls >
-			<track label="English0" kind="subtitles" srcLang="en0" src="subtitles/en.vtt" default />
-			<track label="English1" kind="subtitles" srcLang="en1" src="subtitles/ru.vtt" default />
+			<track label="English0" kind="subtitles" srcLang="en" src="subtitles/The Wire - 1x02 - The Detail.en.vtt" default />
+			<track label="English1" kind="subtitles" srcLang="en1" src="subtitles/The_Wire_102_The_Detail.vtt" default />
 		</video>
 
 		<form>

@@ -304,6 +304,12 @@ router.get('/list', function(req, res, next) {
     res.status(200);
     res.json(torrent);
 
+    // subtitles/en.vtt
+    // subtitles/ru.vtt
+
+    // subtitles/The Wire - 1x02 - The Detail.en.vtt
+    // subtitles/The_Wire_102_The_Detail.vtt
+
 });
 
 //

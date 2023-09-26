@@ -21,13 +21,24 @@
     			cursor: pointer;
 			}
 
+			::cue {
+				background-color: black;
+				color: white;
+			}
+
+			::cue(:lang(ru)) {
+				color: yellow;
+			}
 		</style>
 
 	</head>
 
 	<body>
 
-		<video autoplay src="" height="360px" controls ></video>
+		<video autoplay src="" height="360px" controls >
+			<track label="English0" kind="subtitles" srcLang="en0" src="subtitles/en.vtt" default />
+			<track label="English1" kind="subtitles" srcLang="en1" src="subtitles/ru.vtt" default />
+		</video>
 
 		<form>
 			<label>Upload subtitles</label>
@@ -122,12 +133,12 @@
 			//	2.	Remove the place holder of the input tag. If we don't do
 			//		this the interface will look like poop.
 			//
-			$("input").removeAttr('placeholder');
+			$('input[name="magnet"]').removeAttr('placeholder');
 
 			//
 			//	3.	Set the Magnet Hash in the input tag.
 			//
-			$("input").val(magnet)
+			$('input[name="magnet"]').val(magnet)
 
 			//
 			//	4.	Once we select a Magnet Hash we immediately load the
@@ -176,7 +187,7 @@
 			//
 			//	1.	Get the Magnet Hash
 			//
-			var magnet = $('input').val();
+			var magnet = $('input[name="magnet"]').val();
 
 			//
 			//	2.	Get the file name that was clicked
@@ -187,6 +198,11 @@
 			//	3.	Set the proper SRC of the video player
 			//
 			$('video').attr('src', api + '/stream/' + magnet + "/" + file_name);
+
+
+			for (let i = 0; i < $('video')[0].textTracks.length; i++) {
+				$('video')[0].textTracks[i].mode = 'showing';
+			}
 
 			$.get(api + "/subtitles/" + file_name, function(data) {
 				$.each(data.data, function(index, subtitle) {
@@ -258,7 +274,7 @@
 			//
 			//	4.	Get Magnet hash from the input field
 			//
-			var magnet = $('input').val();
+			var magnet = $('input[name="magnet"]').val();
 
 			//
 			//	5.	React only if there is a Magnet Has
@@ -483,14 +499,17 @@
 				{
 					$("#upload_processing").text('Successfully uploaded');
 
+					// remove prev tracks
+					$('video track').remove()
+
 					for (let i = 0; i < subFileNames.length; i++) {
 						let vttSubFileName = subFileNames[i].replace('.srt', '.vtt');
 
-						let track = '<track\n' +
-								'label="English' + i + '"' +
-								'kind="subtitles"' +
-								'srcLang="en' + i + '"' +
-								'src="subtitles/' + vttSubFileName + '"' +
+						let track = '<track ' +
+								'label="English' + i + '" ' +
+								'kind="subtitles" ' +
+								'srcLang="en' + i + '" ' +
+								'src="subtitles/' + vttSubFileName + '" ' +
 								'default />'
 
 						$('video').append(track);

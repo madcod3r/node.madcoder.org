@@ -24,6 +24,16 @@ router.get('/client', function(req, res, next) {
     });
 
 });
+router.get('/seed', function(req, res, next) {
+
+    //
+    //	->	Display the index view with the video tag
+    //
+    res.render("seed", {
+        base_url: process.env.BASE_URL
+    });
+
+});
 
 router.get('/subtitles/:subFileName', function(req, res, next) {
 

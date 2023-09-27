@@ -1,0 +1,117 @@
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+
+		<title>🍿 Movie Time (Client side webtorrent)</title>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/webtorrent@1.7.0/webtorrent.min.js"></script>
+
+		<style type="text/css">
+
+			body {
+				background: black;
+				font-family: monospace;
+				color: #958826;
+				text-align: center;
+			}
+
+			a {
+				color: #ff8400;
+			}
+
+			a:hover {
+				color: #ffa700;
+			}
+
+			a.toggle {
+				text-decoration: none;
+			}
+
+			a.toggle:hover {
+				text-decoration: underline;
+				text-decoration-style: dashed;
+			}
+
+			ul {
+				display: inline-block;
+				vertical-align: top;
+				list-style-type: decimal;
+				text-align: left;
+			}
+
+			ul li {
+			}
+
+			.url:hover {
+    			text-decoration: underline;
+    			cursor: pointer;
+			}
+
+			video {
+				margin: 100px 0;
+			}
+
+			::cue {
+				background-color: black;
+				color: white;
+			}
+			video::cue(:lang(en)) {
+				color: yellow;
+			}
+
+			::cue(:lang(en)) {
+				color: yellow;
+			}
+			::cue([lang="en"]) {
+				color: yellow;
+			}
+			::cue([srcLang="en"]) {
+				color: yellow;
+			}
+			::cue(:default) {
+				color: yellow;
+			}
+			::cue(::first-line) {
+				color: yellow;
+			}
+			::cue::first-line {
+				color: yellow;
+			}
+			::cue:active {
+				color: yellow;
+			}
+			::cue(:active) {
+				color: yellow;
+			}
+		</style>
+
+	</head>
+
+	<body>
+	<form>
+		<input type="file" multiple>
+	</form>
+
+	</body>
+
+	<script>
+		const client = new WebTorrent()
+
+		$('input').change(function() {
+			client.seed(this.files, function (torrent) {
+				console.log(torrent)
+				console.log('Client is seeding ' + torrent.magnetURI)
+			})
+
+			client.on()
+		});
+
+
+	</script>
+
+</html>

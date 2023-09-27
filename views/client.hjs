@@ -1,148 +1,351 @@
 <html lang="en">
 
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="description" content="">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
 
-		<title>🍿 Movie Time (Client side webtorrent)</title>
+	<title>🍿 Movie Time (Clients-side torrent)</title>
 
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/webtorrent@1.7.0/webtorrent.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/webtorrent@1.8.0/webtorrent.min.js"></script>
 
-		<style type="text/css">
+	<style type="text/css">
 
-			body {
-				background: black;
-				font-family: monospace;
-				color: #958826;
-				text-align: center;
-			}
+		body {
+			background: black;
+			font-family: monospace;
+			color: #958826;
+			text-align: center;
+		}
 
-			a {
-				color: #ff8400;
-			}
+		a {
+			color: #ff8400;
+		}
 
-			a:hover {
-				color: #ffa700;
-			}
+		a:hover {
+			color: #ffa700;
+		}
 
-			a.toggle {
-				text-decoration: none;
-			}
+		a.toggle {
+			text-decoration: none;
+		}
 
-			a.toggle:hover {
-				text-decoration: underline;
-				text-decoration-style: dashed;
-			}
+		a.toggle:hover {
+			text-decoration: underline;
+			text-decoration-style: dashed;
+		}
 
-			ul {
-				display: inline-block;
-				vertical-align: top;
-				list-style-type: decimal;
-				text-align: left;
-			}
+		.url {
+			color: #ff8400;
+		}
 
-			ul li {
-			}
+		.url:hover {
+			text-decoration: underline;
+			color: #ffa700;
+		}
 
-			.url:hover {
-    			text-decoration: underline;
-    			cursor: pointer;
-			}
+		ul {
+			display: inline-block;
+			vertical-align: top;
+			list-style-type: decimal;
+			text-align: left;
+		}
 
-			video {
-				margin: 100px 0;
-			}
+		ul li {
+		}
 
-			::cue {
-				background-color: black;
-				color: white;
-			}
-			video::cue(:lang(en)) {
-				color: yellow;
-			}
+		.url:hover {
+			text-decoration: underline;
+			cursor: pointer;
+		}
 
-			::cue(:lang(en)) {
-				color: yellow;
-			}
-			::cue([lang="en"]) {
-				color: yellow;
-			}
-			::cue([srcLang="en"]) {
-				color: yellow;
-			}
-			::cue(:default) {
-				color: yellow;
-			}
-			::cue(::first-line) {
-				color: yellow;
-			}
-			::cue::first-line {
-				color: yellow;
-			}
-			::cue:active {
-				color: yellow;
-			}
-			::cue(:active) {
-				color: yellow;
-			}
-		</style>
+		video {
+			margin: 100px 0;
+		}
 
-	</head>
+		::cue {
+			background-color: black;
+			color: white;
+		}
 
-	<body>
+		::cue(:lang(en)) {
+			color: yellow;
+		}
+	</style>
 
-	</body>
+</head>
 
-	<script>
+<body>
 
+<div id="video">
+	<video autoplay src="" height="360px" controls></video>
+</div>
 
-		const client = new WebTorrent()
+<p>Samples Torrents (Magnet links):</p>
 
-		//const torrentId = 'magnet:?xt=urn:btih:a65d48e6ff113cd65e0f87216a311468a6f2ae81&dn=The+Wire+S01E01.mp4&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com'
-		const torrentId = 'magnet:?xt=urn:btih:a65d48e6ff113cd65e0f87216a311468a6f2ae81&dn=The+Wire+S01E01.mp4&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337'
+<ul id="demo_magnets">
+	<li><span class="magnet url" data-magnet="magnet:?xt=urn:btih:a65d48e6ff113cd65e0f87216a311468a6f2ae81&dn=The+Wire+S01E01.mp4&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337">The Wire [S01-05] (2002-2008) mp4 1080p</span></li>
+</ul>
 
-		//const torrentId = 'magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent'
+<input name="magnet" type="hidden" />
 
-		client.add(torrentId, function (torrent) {
+<p>Torrent Contents: [ <a href="#" id="contents_toggle" class="toggle">hide</a> ]</p>
 
+<div id="content"></div>
 
-			// Torrents can contain many files. Let's use the .mp4 file
-			const file = torrent.files.find(function (file) {
-				return file.name.endsWith('.mp4')
-			})
+<p>Client Stats:</p>
 
+<ul id="stats">
+	<li>Progress: 0%</li>
+	<li>downloadSpeed: 0 Byte/s</li>
+	<li>ratio: 0</li>
+</ul>
 
-			file.appendTo('body') // append the file to the DOM
+<p>Client Errors:</p>
 
-			document.getElementsByTagName("video")[0].play()
-		})
+<ul id="errors">
+	<li>N/A</li>
+</ul>
+
+</body>
+
+<script>
+
+	let currentFileName
+
+	const client = new WebTorrent()
+
+	$(function() {
 
 		client.on('download', function(bytes) {
 
-			//
-			//	1.	Update the object with fresh data
-			//
-			let stats = {
+			const stats = {
 				progress: Math.round(client.progress * 100 * 100) / 100,
-				downloadSpeed: client.downloadSpeed,
-				ratio: client.ratio
+				downloadSpeed: client.downloadSpeed
 			}
 
-			//console.log('stats', stats)
+			const li = "<li>Progress: " + stats.progress + "%</li>" +
+					"<li>downloadSpeed: " + format_bytes(stats.downloadSpeed, 0) + "/s</li>"
 
+
+			$("#stats").html(li)
 		});
 
 		client.on('error', function(err) {
-
-			//console.log('error:', err)
-
+			$("#errors").html('<li class="error">' + err + '</li>')
 		});
 
 
+		$('#demo_magnets').on('click', '.magnet', function() {
+			const magnet = $(this).data('magnet')
 
-	</script>
+			$('input[name="magnet"]').val(magnet)
+
+			load();
+		});
+
+		// show\hide content
+		$('#contents_toggle').click(function (e) {
+			e.preventDefault();
+
+			$('#content').toggle();
+
+			$(this).text($('#content').is(':visible') ? 'hide' : 'show');
+		})
+
+		// show\hide content
+		$('#subtitles_toggle').click(function (e) {
+			e.preventDefault();
+
+			$('#subtitles').toggle();
+
+			$(this).text($('#subtitles').is(':visible') ? 'hide' : 'show');
+		})
+
+		$('#content').on('click', '.file', function() {
+			const magnet = $('input[name="magnet"]').val()
+
+			const filename = $(this).attr("data-name")
+
+			playVideo(magnet, filename)
+		});
+
+		function load() {
+			$('#load').prop('disabled', true);
+
+			$("#content").html('<b>Loading...</b>');
+
+
+			const magnet = $('input[name="magnet"]').val();
+
+			if(!magnet) {
+				return console.error("No Magnet Hash");
+			}
+
+			// save last loaded magnet to localstorage
+			localStorage.setItem('magnet', magnet);
+
+			client.add(magnet, function (torrent) {
+
+				$('#content').html('<ul>')
+
+				for (let i = 0; i < torrent.files.length; i++) {
+					$('#content ul').append('<li><span class="url" data-name="' + torrent.files[i].name + '">'+ torrent.files[i].name + '</span> (' + format_bytes(torrent.files[i].length, 0) + ')</li>');
+
+				}
+
+				// Loads last used video file from localstorage
+				const lastVideoFile = localStorage.getItem('filename')
+				if (lastVideoFile) {
+					console.log('The video filename loaded from localstorage: ', lastVideoFile)
+
+					playVideo(magnet, lastVideoFile)
+				}
+			})
+		}
+
+		function playVideo(magnet, filename) {
+			localStorage.setItem('magnet', magnet)
+			localStorage.setItem('filename', filename)
+
+			currentFileName = filename;
+
+
+			let userSubs = JSON.parse(localStorage.getItem('subs'));
+			if (userSubs && typeof userSubs[filename] !== 'undefined' && userSubs[filename].length) {
+				const subs = userSubs[filename]
+
+				console.log('loading subs:', subs);
+
+				// remove prev tracks
+				$('video track').remove()
+
+				for (let i = 0; i < subs.length; i++) {
+
+					let track = '<track ' +
+							'label="English' + i + '" ' +
+							'kind="subtitles" ' +
+							'srcLang="en' + i + '" ' +
+							'src="subtitles/' + subs[i] + '" ' +
+							'default />'
+
+					$('video').append(track);
+
+					$('video')[0].textTracks[i].mode = 'showing';
+				}
+
+			}
+
+			//
+			//	3.	Set the proper SRC of the video player
+
+
+
+			const torrent = client.get(magnet)
+
+			const videoFile = torrent.files.find(function (file) {
+				console.log('torrent file', file.name)
+				return file.name === filename
+			})
+
+			if (typeof videoFile !== 'undefined') {
+				$('video').remove();
+				console.log('found file', videoFile)
+
+				videoFile.appendTo('div#video')
+
+				$('video').prop('autoplay', true)
+				$('video').prop('controls', true)
+				$('video').prop('height', '360')
+			}
+
+			let startTimes = JSON.parse(localStorage.getItem('startTimes'));
+			if (startTimes && typeof startTimes[filename] !== 'undefined') {
+				$('video')[0].currentTime = startTimes[filename];
+			}
+
+
+			for (let i = 0; i < $('video')[0].textTracks.length; i++) {
+				$('video')[0].textTracks[i].mode = 'showing';
+			}
+
+			$('video')[0].play()
+		}
+
+		// Loads torrent by magnet stored in localstorage on page loads
+		const magnet = localStorage.getItem('magnet')
+		if (magnet) {
+			console.log('The magnet loaded from localstorage: ', magnet)
+
+			$('input[name="magnet"]').val(localStorage.getItem('magnet'))
+
+			load()
+		}
+
+		// Saves current video time to localstorage
+		setInterval(function() {
+			if (currentFileName) {
+				let startTimes = JSON.parse(localStorage.getItem('startTimes')) || {}
+
+				startTimes[currentFileName] = $('video')[0].currentTime
+
+				localStorage.setItem('startTimes', JSON.stringify(startTimes))
+			}
+		}, 200);
+
+		// save last time of selected video
+		let userSubs = JSON.parse(localStorage.getItem('subs'));
+		if (!userSubs) {
+			let userSubs = {
+				'The Wire S01E01.mp4': ['en.vtt', 'ru.vtt'],
+				'The Wire S01E02.mp4': ['The Wire - 1x02 - The Detail.en.vtt', 'The_Wire_102_The_Detail.vtt']
+			};
+
+			localStorage.setItem('subs', JSON.stringify(userSubs));
+		}
+	});
+
+	//
+	//	Convert bytes to a human readable form
+	//
+	function format_bytes(bytes, decimals)
+	{
+		//
+		//	If the size is 0, then we can stop right away.
+		//
+		if(bytes == 0)
+		{
+			return '0 Byte';
+		}
+
+		//
+		//	Convert bytes to kilobytes
+		//
+		var k = 1024;
+
+		//
+		//	Set how many position after decimal to show
+		//
+		var dm = decimals + 1 || 3;
+
+		//
+		//	Array with all the possible formats.
+		//
+		var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+		//
+		//
+		//
+		var i = Math.floor(Math.log(bytes) / Math.log(k));
+
+		//
+		//
+		//
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+	}
+
+</script>
 
 </html>

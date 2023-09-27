@@ -61,6 +61,11 @@
 			cursor: pointer;
 		}
 
+		table#stats {
+			width: 200px;
+			display: inline-block;
+		}
+
 		video {
 			margin: 100px 0;
 		}
@@ -83,7 +88,7 @@
 	<video autoplay src="" height="360px" controls></video>
 </div>
 
-<p>Samples Torrents (Magnet links):</p>
+<h3>Samples Torrents (Magnet links):</h3>
 
 <ul id="demo_magnets">
 	<li><span class="magnet url" data-magnet="magnet:?xt=urn:btih:a65d48e6ff113cd65e0f87216a311468a6f2ae81&dn=The+Wire+S01E01.mp4&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337">The Wire [S01-05] (2002-2008) mp4 1080p</span></li>
@@ -91,19 +96,24 @@
 
 <input name="magnet" type="hidden" />
 
-<p>Torrent Contents: [ <a href="#" id="contents_toggle" class="toggle">hide</a> ]</p>
+<h3>Torrent Contents: [ <a href="#" id="contents_toggle" class="toggle">hide</a> ]</h3>
 
 <div id="content"></div>
 
-<p>Client Stats:</p>
+<h3>Client Stats:</h3>
 
-<ul id="stats">
-	<li>Progress: 0%</li>
-	<li>downloadSpeed: 0 Byte/s</li>
-	<li>ratio: 0</li>
-</ul>
+<table id="stats">
+	<tr>
+		<td>Progress:</td>
+		<td>0%</td>
+	</tr>
+	<tr>
+		<td>Speed:</td>
+		<td>0 Byte/s</td>
+	</tr>
+</table>
 
-<p>Client Errors:</p>
+<h3>Client Errors:</h3>
 
 <ul id="errors">
 	<li>N/A</li>
@@ -126,8 +136,14 @@
 				downloadSpeed: client.downloadSpeed
 			}
 
-			const li = "<li>Progress: " + stats.progress + "%</li>" +
-					"<li>downloadSpeed: " + format_bytes(stats.downloadSpeed, 0) + "/s</li>"
+			const li = "<tr>" +
+					"<td>Progress:</td>" +
+					"<td>" + stats.progress + "%</td>" +
+					"</tr>" +
+					"<tr>" +
+					"<td>Speed:</td>" +
+					"<td>" + format_bytes(stats.downloadSpeed, 0) + "/s</td>" +
+					"</tr>"
 
 
 			$("#stats").html(li)
@@ -212,66 +228,61 @@
 
 			currentFileName = filename;
 
-
-			let userSubs = JSON.parse(localStorage.getItem('subs'));
-			if (userSubs && typeof userSubs[filename] !== 'undefined' && userSubs[filename].length) {
-				const subs = userSubs[filename]
-
-				console.log('loading subs:', subs);
-
-				// remove prev tracks
-				$('video track').remove()
-
-				for (let i = 0; i < subs.length; i++) {
-
-					let track = '<track ' +
-							'label="English' + i + '" ' +
-							'kind="subtitles" ' +
-							'srcLang="en' + i + '" ' +
-							'src="subtitles/' + subs[i] + '" ' +
-							'default />'
-
-					$('video').append(track);
-
-					$('video')[0].textTracks[i].mode = 'showing';
-				}
-
-			}
-
-			//
-			//	3.	Set the proper SRC of the video player
-
-
-
 			const torrent = client.get(magnet)
 
 			const videoFile = torrent.files.find(function (file) {
-				console.log('torrent file', file.name)
 				return file.name === filename
 			})
 
 			if (typeof videoFile !== 'undefined') {
 				$('video').remove();
-				console.log('found file', videoFile)
 
 				videoFile.appendTo('div#video')
 
+				// configurate
 				$('video').prop('autoplay', true)
 				$('video').prop('controls', true)
 				$('video').prop('height', '360')
+
+				// video start time
+				let startTimes = JSON.parse(localStorage.getItem('startTimes'));
+				if (startTimes && typeof startTimes[filename] !== 'undefined') {
+					$('video')[0].currentTime = startTimes[filename];
+				}
+
+				// video subs
+				let userSubs = JSON.parse(localStorage.getItem('subs'));
+				if (userSubs && typeof userSubs[filename] !== 'undefined' && userSubs[filename].length) {
+					const subs = userSubs[filename]
+
+					console.log('loading subs:', subs);
+
+					// remove prev tracks
+					$('video track').remove()
+
+					for (let i = 0; i < subs.length; i++) {
+
+						let track = '<track ' +
+								'label="English' + i + '" ' +
+								'kind="subtitles" ' +
+								'srcLang="en' + i + '" ' +
+								'src="subtitles/' + subs[i] + '" ' +
+								'default />'
+
+						$('video').append(track);
+
+						$('video')[0].textTracks[i].mode = 'showing';
+					}
+				}
+
+				for (let i = 0; i < $('video')[0].textTracks.length; i++) {
+					$('video')[0].textTracks[i].mode = 'showing';
+				}
+
+				// play the vid
+				$('video')[0].play()
+
 			}
-
-			let startTimes = JSON.parse(localStorage.getItem('startTimes'));
-			if (startTimes && typeof startTimes[filename] !== 'undefined') {
-				$('video')[0].currentTime = startTimes[filename];
-			}
-
-
-			for (let i = 0; i < $('video')[0].textTracks.length; i++) {
-				$('video')[0].textTracks[i].mode = 'showing';
-			}
-
-			$('video')[0].play()
 		}
 
 		// Loads torrent by magnet stored in localstorage on page loads
